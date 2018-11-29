@@ -1,0 +1,2 @@
+install:
+	g++ bacteria.cpp
