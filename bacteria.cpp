@@ -5,54 +5,38 @@
 #include <random>
 #include <algorithm>
 
-const int MIN_X = -8.0;
-const int MAX_X = 8.0;
+#define MAX_X 8
+#define MIN_X -8
 
-class cell_t
+enum STAT_TYPE {
+    MAX_HP,
+    STRENGTH,
+    MAGIC,
+    SKILL,
+    SPEED,
+    LUCK,
+    DEFENSE,
+    RESISTANCE,
+
+    // This defines how many stats there are
+    NUM_STATS
+};
+
+const int MAX_STAT_VAL = 100;
+
+class character_t
 {
 public:
-    std::vector<double> pos;
+    std::vector<double> stats;
     double              fitness;
     double              health;
+    int                 constValIndices[2] = {-1,-1 };
+    double              popularity;
 };
 
 double evalFitness(std::vector<double> v)
 {
-    double sr = 0.0; // square root
-    double sn = 0.0; // sin
-    for (int i = 0; i < v.size(); i++)
-    {
-        /*****************************************/
-        /**             Square Root             **/
-        /*****************************************/
-        // x sub i
-        double a = v.at(i);
-
-        // (-1)^i (i % 4)
-        // i+1 because formula states from i=1..N,
-        // here i starts at 0
-        a += pow(-1, i+1) * ((i+1) % 4);
-
-        // sum to our current total, squared
-        sr += pow(a, 2);
-
-        /*****************************************/
-        /**                 Sin                 **/
-        /*****************************************/
-        // x sub i
-        a = v.at(i);
-
-        // add to running total (x sub i) ^ i
-        sn += pow(a, i+1);
-    }
-
-    // square root
-    sr = sqrt(sr);
-    // the square root is negated
-    sr *= -1.0;
-
-    // final value is sqrt(sum1) + sin(sum2)
-    return sr + sin(sn);
+    return sin(30);
 }
 
 void printVector(std::vector<double> v)
@@ -63,17 +47,19 @@ void printVector(std::vector<double> v)
     }
 }
 
-std::vector<double> genRandSol(int n)
+void genRandSol(character_t &character)
 {
-    std::vector<double> v(n);
-
-    for (int i = 0; i < n; i++)
+    /* Set each stat value */
+    for (int i = 0; i < NUM_STATS; i++)
     {
-        // start at -7 to 7 instead of -8 to 8
-        v.at(i) = (MIN_X+1) + rand() % ((MAX_X-1) - (MIN_X+1) + 1);
+        character.stats.push_back( (double) (rand() % MAX_STAT_VAL) );
     }
 
-    return v;
+    /* Pick one or two immutable stats */
+    int stat1 = rand() % NUM_STATS;
+    character.constValIndices[0] = stat1;
+
+    character.popularity = rand() % NUM_STATS;
 }
 
 std::vector<double> getRandDir(int n)
@@ -104,18 +90,18 @@ std::vector<double> getRandDir(int n)
 
 /* The cell interaction equation `g()` as described by the
  * clever algorithms textbook */
-double cellInteraction(std::vector<cell_t> population, cell_t cell, double ATTRACT_D, double ATTRACT_W, double REPEL_H, double REPEL_W)
+double cellInteraction(std::vector<character_t> population, character_t cell, double ATTRACT_D, double ATTRACT_W, double REPEL_H, double REPEL_W)
 {
     double sumAttract = 0.0;
     double sumRepel = 0.0;
 
-    for (cell_t neighborCell : population)
+    for (character_t neighborCell : population)
     {
         double diff = 0.0;
 
-        for (int i = 0; i < neighborCell.pos.size(); i++)
+        for (int i = 0; i < neighborCell.stats.size(); i++)
         {
-            diff += pow((cell.pos.at(i) - neighborCell.pos.at(i)), 2.0);
+            diff += pow((cell.stats.at(i) - neighborCell.stats.at(i)), 2.0);
         }
 
         sumAttract += -1.0 * ATTRACT_D * exp(-1.0 * ATTRACT_W * diff);
@@ -126,7 +112,7 @@ double cellInteraction(std::vector<cell_t> population, cell_t cell, double ATTRA
 }
 
 void chemotaxisAndSwim(
-    std::vector<cell_t> &population,
+    std::vector<character_t> &population,
     int n,
     const double STEP_SIZE,     // Same as book
     const int    ELDISP_STEPS,    // elimination/dispersal events
@@ -151,32 +137,32 @@ void chemotaxisAndSwim(
         //printf("cell num %d\n", cellNum);
 
         // calculate the current cell's fitness
-        population.at(cellNum).fitness = evalFitness(population.at(cellNum).pos) + cellInteraction(population, population.at(cellNum), ATTRACT_D, ATTRACT_W, REPEL_H, REPEL_W);
+        population.at(cellNum).fitness = evalFitness(population.at(cellNum).stats) + cellInteraction(population, population.at(cellNum), ATTRACT_D, ATTRACT_W, REPEL_H, REPEL_W);
 
         for (int stepNum = 0; stepNum < CHEMO_STEPS; stepNum++)
         {
             /* Create a temp cell and have it take a random step */
-            cell_t tempCell;
+            character_t tempCell;
             tempCell.health = population.at(cellNum).health;
-            tempCell.pos.reserve(n);
+            tempCell.stats.reserve(n);
             std::vector<double> dir = getRandDir(n);
 
-            cell_t curCell = population.at(cellNum);
+            character_t curCell = population.at(cellNum);
             for (int i = 0; i < n; i++)
             {
                 //printf("Before tumble\n");
                 //printf("Dir: "); printVector(dir); printf("\n");
-                //printf("curcell pos: "); printVector(curCell.pos); printf("\n");
-                //printf("tempcell pos size: %d\n", tempCell.pos.size());
-                tempCell.pos.push_back( curCell.pos.at(i) + STEP_SIZE * dir.at(i) );
+                //printf("curcell stats: "); printVector(curCell.stats); printf("\n");
+                //printf("tempcell stats size: %d\n", tempCell.stats.size());
+                tempCell.stats.push_back( curCell.stats.at(i) + STEP_SIZE * dir.at(i) );
                 //printf("After tumble\n");
 
-                if (tempCell.pos.at(i) > MAX_X) tempCell.pos.at(i) = MAX_X;
-                if (tempCell.pos.at(i) < MIN_X) tempCell.pos.at(i) = MIN_X;
+                if (tempCell.stats.at(i) > MAX_X) tempCell.stats.at(i) = MAX_X;
+                if (tempCell.stats.at(i) < MIN_X) tempCell.stats.at(i) = MIN_X;
 
             }
 
-            tempCell.fitness = evalFitness(tempCell.pos) + cellInteraction(population, tempCell, ATTRACT_D, ATTRACT_W, REPEL_H, REPEL_W);
+            tempCell.fitness = evalFitness(tempCell.stats) + cellInteraction(population, tempCell, ATTRACT_D, ATTRACT_W, REPEL_H, REPEL_W);
             /* Exit if we didn't find a better solution? 
              * because we're MAXIMIZING a problem less is worse*/
             //if (tempCell.fitness > population.at(cellNum).fitness) {
@@ -199,13 +185,13 @@ void chemotaxisAndSwim(
 
 /* Eliminate part of the population */
 void eliminatePop(
-    std::vector<cell_t> &population
+    std::vector<character_t> &population
 )
 {
     /* Sort by health 
      * cells now sorted greatest health -> least health */
     std::sort(population.begin(), population.end(),
-            [](cell_t a, cell_t b) {
+            [](character_t a, character_t b) {
                 return a.health > b.health;
             }
     );
@@ -238,19 +224,20 @@ void bacterialOptimization(int n)
     const double REPEL_H = 0.1;       // repel coefficient
     const double REPEL_W = 10.0;      // repel weight 
 
-    std::vector<cell_t> population(POP_SIZE);
+    std::vector<character_t> population(POP_SIZE);
 
-    cell_t best; // best cell;
+    character_t best; // best cell;
     best.fitness = -9999;
 
     /* Generate the initial population */
     //printf("Initial pop:\n");
     for (int i = 0; i < POP_SIZE; i++)
     {
-        population.at(i).pos = genRandSol(n);
+        //population.at(i).stats = genRandSol(n);
+        genRandSol(population.at(i));
         population.at(i).fitness = 0.0;
         population.at(i).health = 0.0;
-    //    printVector(population.at(i).pos);
+    //    printVector(population.at(i).stats);
     //    printf("\n");
     }
     //printf("\n");
@@ -268,15 +255,15 @@ void bacterialOptimization(int n)
                     REPEL_W);
 
                 /* Check for a new best */
-                for (cell_t cell : population)
+                for (character_t cell : population)
                 {
                     /* -9999 for the initial cell */
                     //if (best.fitness == -9999 || cell.fitness >= best.fitness)
                     if (cell.fitness > best.fitness)
                     {
                         best = cell;
-                        //printf("New Best: "); printVector(best.pos); printf("\n");
-                        //printf("Fitness: %f\n", evalFitness(best.pos));
+                        //printf("New Best: "); printVector(best.stats); printf("\n");
+                        //printf("Fitness: %f\n", evalFitness(best.stats));
                     }
                 }
             } // end CHEMO_STEPS
@@ -291,17 +278,18 @@ void bacterialOptimization(int n)
         {
             double num = (double)rand() / ((double)RAND_MAX / (MAXPROB));
             if (num < ELIM_PROB) {
-                population.at(cellNum).pos = genRandSol(n);
+                //population.at(cellNum).stats = genRandSol(n);
+                genRandSol(population.at(cellNum));
                 population.at(cellNum).health = 0.0;
-                population.at(cellNum).fitness = evalFitness(population.at(cellNum).pos);
+                population.at(cellNum).fitness = evalFitness(population.at(cellNum).stats);
             }
         }
     } // end ELDISP steps
 
     
 
-    printf("Best: "); printVector(best.pos); printf("\n");
-    printf("Fitness: %f\n", evalFitness(best.pos));
+    printf("Best: "); printVector(best.stats); printf("\n");
+    printf("Fitness: %f\n", evalFitness(best.stats));
 }
 
 int main(int argc, char *argv[])
