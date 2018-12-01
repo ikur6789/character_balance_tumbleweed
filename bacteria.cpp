@@ -8,6 +8,7 @@
 #define MAX_X 8
 #define MIN_X -8
 #define ROSTER_SIZE 20
+#define NUM_TOURNAMENTS 100
 
 enum STAT_TYPE {
     MAX_HP,
@@ -59,6 +60,7 @@ class character_t
     	double              health;
     	int                 constValIndices[2] = {-1,-1 };
     	double              popularity = 0; //All characters have 0 popularity, they gain more by winning tournaments
+        unsigned            numWins = 0;
 
 
 };
@@ -84,7 +86,7 @@ critical chance = critical - crit evade
 critical damage = damage*3
 */
 
-character_t tournament_match(character_t fighter1, character_t fighter2)
+character_t tournament_match(character_t &fighter1, character_t &fighter2)
 {
     
 	int fighter1Hit = fighter1.stats[SKILL]*2 + fighter1.stats[LUCK]/2 - fighter2.stats[SPEED]*2 + fighter2.stats[LUCK];
@@ -160,23 +162,50 @@ character_t tournament_match(character_t fighter1, character_t fighter2)
 
     //someone dies
     if(fighter1.health <= 0)
-        return fighter2;
-    else
-	   	return fighter1;
+		return fighter2;
+	else
+		return fighter1;
 }
 
 /*typedef struct bracket_match{
+    int fighter1_id = -1;
+    int fighter2_id = -1;
+
+    bracket_match *up_match = NULL;
+    bracket_match *down_match = NULL;
+
+    bracket_match *next_match = NULL;
+};*/
+
+void tournament(std::vector<character_t> &roster)
+{
+	for (int i = 0; i < ROSTER_SIZE; ++i)
+		for(int j = 0; j < ROSTER_SIZE; ++j)
+            tournament_match(roster[i], roster[j]);
+
+            /*
+				popularity = https://en.wikipedia.org/wiki/Binary_logarithm
+			*/
     
 }
 
-void tournament()
+int checkBalance(std::vector<character_t> &roster)
 {
-    
-}*/
+	for(int i = 0; i < NUM_TOURNAMENTS; ++i)
+		tournament(roster);
+	
+    std::sort(roster.begin(), roster.end(),
+            [](character_t a, character_t b) {
+                return a.numWins > b.numWins;
+            }
+    );
 
+    return abs(roster.front().numWins - roster.back().numWins);
+}
 
 double evalFitness(std::vector<double> v)
 {
+    
     return sin(30);
 }
 
