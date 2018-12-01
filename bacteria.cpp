@@ -167,6 +167,16 @@ character_t tournament_match(character_t &fighter1, character_t &fighter2)
 		return fighter1;
 }
 
+/*typedef struct bracket_match{
+    int fighter1_id = -1;
+    int fighter2_id = -1;
+
+    bracket_match *up_match = NULL;
+    bracket_match *down_match = NULL;
+
+    bracket_match *next_match = NULL;
+}*/
+
 
 void tournament(std::vector<character_t> &roster)
 {
