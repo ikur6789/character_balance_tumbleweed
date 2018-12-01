@@ -4,6 +4,8 @@
 #include <cmath>
 #include <random>
 #include <algorithm>
+#include <numeric>
+#include <iostream>
 
 #define MAX_X 8
 #define MIN_X -8
@@ -34,9 +36,33 @@ public:
     double              popularity;
 };
 
-double evalFitness(std::vector<double> v)
+double evalFitness(std::vector<character_t> population, int character_index)
 {
-    return sin(30);
+    double fitness = 0.0;
+
+    /* Method 1: add difference of the rest of the population's total stats
+     * Get average total stat count for the rest of the population */
+    double popAverageStatSum = 0.0;
+    double curStatSum = std::accumulate(population.at(character_index).stats.begin(), population.at(character_index).stats.end(), 0.0f);
+    for (int i = 0; i < population.size(); i++)
+    {
+        /* Don't add the current character as an average */
+        if (i != character_index)
+            popAverageStatSum += std::accumulate(population.at(i).stats.begin(), population.at(i).stats.end(), 0.0f);
+    }
+    /* Remove the current character from the size */
+    popAverageStatSum /= (population.size() - 1);
+
+    std::cout << "Rest of population average: " << popAverageStatSum << std::endl;
+    std::cout << "Current Character sum: " << curStatSum << std::endl;
+
+    fitness += abs(popAverageStatSum - curStatSum);
+
+#if 0
+    /* Method 2: add the difference between each individual rest of the population */
+#endif
+
+    return fitness;
 }
 
 void printVector(std::vector<double> v)
@@ -137,7 +163,8 @@ void chemotaxisAndSwim(
         //printf("cell num %d\n", cellNum);
 
         // calculate the current cell's fitness
-        population.at(cellNum).fitness = evalFitness(population.at(cellNum).stats) + cellInteraction(population, population.at(cellNum), ATTRACT_D, ATTRACT_W, REPEL_H, REPEL_W);
+        //population.at(cellNum).fitness = evalFitness(population.at(cellNum).stats) + cellInteraction(population, population.at(cellNum), ATTRACT_D, ATTRACT_W, REPEL_H, REPEL_W);
+        population.at(cellNum).fitness = evalFitness(population, cellNum) + cellInteraction(population, population.at(cellNum), ATTRACT_D, ATTRACT_W, REPEL_H, REPEL_W);
 
         for (int stepNum = 0; stepNum < CHEMO_STEPS; stepNum++)
         {
@@ -162,7 +189,10 @@ void chemotaxisAndSwim(
 
             }
 
-            tempCell.fitness = evalFitness(tempCell.stats) + cellInteraction(population, tempCell, ATTRACT_D, ATTRACT_W, REPEL_H, REPEL_W);
+            // !!!! BJ !!! -- ADD THIS BACK IN/FIX ME !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+            // tempCell.fitness = evalFitness(tempCell.stats) + cellInteraction(population, tempCell, ATTRACT_D, ATTRACT_W, REPEL_H, REPEL_W);
+            // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
             /* Exit if we didn't find a better solution? 
              * because we're MAXIMIZING a problem less is worse*/
             //if (tempCell.fitness > population.at(cellNum).fitness) {
@@ -281,7 +311,9 @@ void bacterialOptimization(int n)
                 //population.at(cellNum).stats = genRandSol(n);
                 genRandSol(population.at(cellNum));
                 population.at(cellNum).health = 0.0;
-                population.at(cellNum).fitness = evalFitness(population.at(cellNum).stats);
+                // !!!!!!!!! BJ !!!!!!!!!!!!!! - FIX/ADD ME BACK IN !!!!!!!!!!!!!!!!!!!!!!!!!
+                //population.at(cellNum).fitness = evalFitness(population.at(cellNum).stats);
+                // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
             }
         }
     } // end ELDISP steps
@@ -289,23 +321,37 @@ void bacterialOptimization(int n)
     
 
     printf("Best: "); printVector(best.stats); printf("\n");
-    printf("Fitness: %f\n", evalFitness(best.stats));
+    // !!!!!!!!!!!!!! BJ !!!!!!!!!!!!!!!!!! - FIX/ADD ME BACK IN !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+    //printf("Fitness: %f\n", evalFitness(best.stats));
+    // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 }
 
 int main(int argc, char *argv[])
 {
     srand(time(0));
 
-	std::vector<int> dims = {1, 2, 3, 5, 8, 13};
+	/*std::vector<int> dims = {1, 2, 3, 5, 8, 13};
 	
 	for(int x : dims)
 	{
 		printf("N = %d\n--------------\n", x);
 		bacterialOptimization(x);
 		printf("\n");
-	}
+	}*/
+
+    std::vector<character_t> population;
+    for (int i = 0; i < 2; i++) {
+        character_t newChar;
+        genRandSol(newChar);
+
+        population.push_back(newChar);
+    }
 	
-    
+    for (int i = 0; i < population.size(); i++)
+    {
+        double fitness = evalFitness(population, i);
+        std::cout << "Fitness: " << fitness << std::endl;
+    }
 
     return 0;
 }
