@@ -1,2 +1,2 @@
 install:
-	g++ bacteria.cpp
+	g++ bacteria.cpp -o bacteria
