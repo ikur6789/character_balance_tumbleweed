@@ -7,6 +7,7 @@
 
 #define MAX_X 8
 #define MIN_X -8
+#define ROSTER_SIZE 20
 
 enum STAT_TYPE {
     MAX_HP,
@@ -26,13 +27,153 @@ const int MAX_STAT_VAL = 100;
 
 class character_t
 {
-public:
-    std::vector<double> stats;
-    double              fitness;
-    double              health;
-    int                 constValIndices[2] = {-1,-1 };
-    double              popularity;
+	public:
+        //Function members:
+        character_t()
+        {
+           for(int s=0;s<NUM_STATS;++s)
+            	stats.push_back((double)(rand() % MAX_STAT_VAL)+20); //random stat from 20-100 for every stat
+			
+            //Creating non changeable stats
+                //first non-changable stat
+            constValIndices[0] = rand() % NUM_STATS;
+
+                //second non-changable stat, if they have one
+            if(rand()%2) //"If an odd number, true, if an even number, false"
+            {
+                do
+                {
+                    constValIndices[1] = rand() % NUM_STATS;
+                }
+                while(constValIndices[1]!=constValIndices[0]); //Ensures two unique unchangable stats
+                
+            }
+
+			health = stats[0]; //Starting health is their max health stat
+
+        }
+
+        //Data members:
+    	std::vector<double> stats;
+    	double              fitness;
+    	double              health;
+    	int                 constValIndices[2] = {-1,-1 };
+    	double              popularity = 0; //All characters have 0 popularity, they gain more by winning tournaments
+
+
 };
+
+/*
+battle calculations
+based on FE7 from https://fireemblem.fandom.com/wiki/Battle_Formulas
+
+accuracy = 2*skill + 0.5*luck
+dodge = 2*speed + luck
+chance to hit = accuracy - dodge
+
+phys damage = strength - defense
+mag damage = magic - resistance
+
+speed >= 4 
+2*damage
+
+critical = skill/2
+critical evade = luck
+critical chance = critical - crit evade
+
+critical damage = damage*3
+*/
+
+character_t tournament_match(character_t fighter1, character_t fighter2)
+{
+    
+	int fighter1Hit = fighter1.stats[SKILL]*2 + fighter1.stats[LUCK]/2 - fighter2.stats[SPEED]*2 + fighter2.stats[LUCK];
+	int fighter2Hit = fighter2.stats[SKILL]*2 + fighter2.stats[LUCK]/2 - fighter1.stats[SPEED]*2 + fighter1.stats[LUCK];
+
+    int fighter1Dmg = 0;
+	int fighter2Dmg = 0;
+        
+    int attack_type = rand()%2; //Randomly choose attack type this turn
+    if(attack_type) // if 1, physical attack. if 0, magical attack
+    {
+        fighter1Dmg = fighter1.stats[STRENGTH] - fighter2.stats[DEFENSE];
+        fighter2Dmg = fighter2.stats[STRENGTH] - fighter1.stats[DEFENSE];
+    }
+    else
+    {
+        fighter1Dmg = fighter1.stats[MAGIC] - fighter2.stats[RESISTANCE];
+        fighter2Dmg = fighter2.stats[MAGIC] - fighter1.stats[RESISTANCE];
+    }
+    
+    int fighter1Crit = fighter1.stats[SKILL]/2 - fighter2.stats[LUCK];
+    int fighter2Crit = fighter2.stats[SKILL]/2 - fighter1.stats[LUCK];
+		
+    //fight to death
+    while( (fighter1.health > 0) && (fighter2.health > 0) )
+	{
+		
+        //The faster of two will attack first
+        if(fighter1.stats[SPEED]>fighter2.stats[SPEED]) //fighter 1 will attack first
+        {
+            //fighter1
+                //roll a chance to hit
+            if(rand()%100 <= fighter1Hit)
+            {
+                //attack will go through, need to attack
+                if(rand()%100 <= fighter1Crit) // triples damage if critical
+                    fighter1Dmg *= 3;
+            
+                fighter2.health -= fighter1Dmg;
+            }
+
+            //fighter2
+            if(rand()%100 <= fighter2Hit)
+            {
+                if(rand()%100 <= fighter2Crit)
+            	    fighter2Dmg *= 3; 
+
+                fighter1.health -= fighter1Dmg;                                       
+            }
+        }
+        else
+        {
+            //fighter2 attacks first
+            if(rand()%100 <= fighter2Hit)
+            {
+                if(rand()%100 <= fighter2Crit)
+            	    fighter2Dmg *= 3; 
+
+                fighter1.health -= fighter1Dmg;                                       
+            }                
+
+            //fighter1 if(rand()%100 <= fighter2hit)
+            if(rand()%100 <= fighter1Hit)
+            {
+                //attack will go through, need to attack
+                if(rand()%100 <= fighter1Crit) // triples damage if critical
+                    fighter1Dmg *= 3;
+            
+                fighter2.health -= fighter1Dmg;
+            }
+        }            
+    }  
+
+    //someone dies
+    if(fighter1.health <= 0)
+        return fighter2;
+    else
+	   	return fighter1;
+}
+
+/*typedef struct bracket_match{
+    
+}
+
+void tournament()
+{
+    
+}*/
+
 
 double evalFitness(std::vector<double> v)
 {
@@ -292,11 +433,25 @@ void bacterialOptimization(int n)
     printf("Fitness: %f\n", evalFitness(best.stats));
 }
 
+void fill_roster(std::vector<character_t> &roster)
+{
+    for(int i=0;i<ROSTER_SIZE;++i)
+    {
+        character_t addition;
+        roster.push_back(addition);
+    }
+
+    return;
+}
+
 int main(int argc, char *argv[])
 {
     srand(time(0));
 
 	std::vector<int> dims = {1, 2, 3, 5, 8, 13};
+
+	std::vector<character_t> roster;
+	fill_roster(roster);
 	
 	for(int x : dims)
 	{
