@@ -13,10 +13,32 @@
 #define ROSTER_SIZE 20
 #define NUM_TOURNAMENTS 100
 
-double evalFitness(std::vector<double> v)
+double evalFitness(std::vector<character_t> population, int character_index)
 {
-    
-    return sin(30);
+    double fitness = 0.0;
+
+    /* get average total stat count for the rest of the population */
+    double popAverageStatSum = 0.0;
+    double curStatSum = std::accumulate(population.at(character_index).stats.begin(), population.at(character_index).stats.end(), 0.0f);
+    for (int i = 0; i < population.size(); i++)
+    {
+        /* Don't add the current character as an average */
+        if (i != character_index)
+            popAverageStatSum += std::accumulate(population.at(i).stats.begin(), population.at(i).stats.end(), 0.0f);
+    }
+    /* Remove the current character from the size */
+    popAverageStatSum /= (population.size() - 1);
+
+    std::cout << "Rest of population average: " << popAverageStatSum << std::endl;
+    std::cout << "Current Character sum: " << curStatSum << std::endl;
+
+    fitness += abs(popAverageStatSum - curStatSum);
+
+#if 0
+    /* Method 2: add the difference between each individual rest of the population */
+#endif
+
+    return fitness;
 }
 
 void printVector(std::vector<double> v)
@@ -91,6 +113,7 @@ double cellInteraction(std::vector<character_t> population, character_t cell, do
     return sumAttract + sumRepel;
 }
 
+#if 0
 void chemotaxisAndSwim(
     std::vector<character_t> &population,
     int n,
@@ -162,6 +185,7 @@ void chemotaxisAndSwim(
     // ---------------------------------------------------------- 
     }
 }
+#endif
 
 /* Eliminate part of the population */
 void eliminatePop(
@@ -188,6 +212,7 @@ void eliminatePop(
     }
 }
 
+#if 0
 /* n is the number of dimensions */
 /* https://gist.github.com/x0xMaximus/8626921 */
 void bacterialOptimization(int n)
@@ -271,6 +296,7 @@ void bacterialOptimization(int n)
     printf("Best: "); printVector(best.stats); printf("\n");
     printf("Fitness: %f\n", evalFitness(best.stats));
 }
+#endif
 
 void fill_roster(std::vector<character_t> &roster)
 {
@@ -308,7 +334,8 @@ int main(int argc, char *argv[])
 
     for (int i = 0; i < population.size(); i++)
     {
-        //double fitness = evalFitness(population, i);
+        double fitness = evalFitness(population, i);
+        std::cout << "Fitness: " << fitness << std::endl;
     }
 
     return 0;
