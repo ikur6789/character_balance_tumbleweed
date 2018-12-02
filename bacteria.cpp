@@ -308,7 +308,7 @@ int main(int argc, char *argv[])
 
     for (int i = 0; i < population.size(); i++)
     {
-        double fitness = evalFitness(population, i);
+        //double fitness = evalFitness(population, i);
     }
 
     return 0;
