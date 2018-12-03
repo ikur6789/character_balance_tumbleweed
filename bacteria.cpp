@@ -16,6 +16,7 @@
 double evalFitness(std::vector<character_t> population, int character_index)
 {
     double fitness = 0.0;
+    double win_range_scale = 1.5; // The win range should be more important than the number of wins
 
     /* get average total stat count for the rest of the population */
     double popAverageStatSum = 0.0;
@@ -34,9 +35,31 @@ double evalFitness(std::vector<character_t> population, int character_index)
 
     fitness += abs(popAverageStatSum - curStatSum);
 
+    /* The current character's stats shouldn't be too similar */
+
+    /**********************************************************/
+
+
 #if 0
     /* Method 2: add the difference between each individual rest of the population */
 #endif
+
+    /* TODO - FIX COMPETE */
+    //int win_range = compete(population, character_index);
+
+    /**************** FAKE VALUES FOR NOW ****************/
+    int win_range = rand() % NUM_TOURNAMENTS;
+    int num_wins = rand() % NUM_TOURNAMENTS;
+
+    /* Winning more tournaments should improve the score */
+    fitness -= num_wins;
+
+    /* A large win range (e.g. someone's winning alot and someone else 
+     * isn't winning) should decrease the score */
+    fitness += win_range * win_range_scale;
+
+    std::cout << "  Num Wins: " << num_wins << "  Win Range: " << win_range << std::endl;
+    /*****************************************************/
 
     return fitness;
 }
@@ -113,7 +136,6 @@ double cellInteraction(std::vector<character_t> population, character_t cell, do
     return sumAttract + sumRepel;
 }
 
-#if 0
 void chemotaxisAndSwim(
     std::vector<character_t> &population,
     int n,
@@ -140,7 +162,7 @@ void chemotaxisAndSwim(
         //printf("cell num %d\n", cellNum);
 
         // calculate the current cell's fitness
-        population.at(cellNum).fitness = evalFitness(population.at(cellNum).stats) + cellInteraction(population, population.at(cellNum), ATTRACT_D, ATTRACT_W, REPEL_H, REPEL_W);
+        population.at(cellNum).fitness = evalFitness(population, cellNum) + cellInteraction(population, population.at(cellNum), ATTRACT_D, ATTRACT_W, REPEL_H, REPEL_W);
 
         for (int stepNum = 0; stepNum < CHEMO_STEPS; stepNum++)
         {
@@ -165,7 +187,9 @@ void chemotaxisAndSwim(
 
             }
 
-            tempCell.fitness = evalFitness(tempCell.stats) + cellInteraction(population, tempCell, ATTRACT_D, ATTRACT_W, REPEL_H, REPEL_W);
+            /* TODO - Fix me so that we can test a temp cell!!! */
+            //tempCell.fitness = evalFitness(tempCell.stats) + cellInteraction(population, tempCell, ATTRACT_D, ATTRACT_W, REPEL_H, REPEL_W);
+            tempCell.fitness = evalFitness(population, cellNum) + cellInteraction(population, tempCell, ATTRACT_D, ATTRACT_W, REPEL_H, REPEL_W);
             /* Exit if we didn't find a better solution? 
              * because we're MAXIMIZING a problem less is worse*/
             //if (tempCell.fitness > population.at(cellNum).fitness) {
@@ -185,7 +209,6 @@ void chemotaxisAndSwim(
     // ---------------------------------------------------------- 
     }
 }
-#endif
 
 /* Eliminate part of the population */
 void eliminatePop(
@@ -212,7 +235,6 @@ void eliminatePop(
     }
 }
 
-#if 0
 /* n is the number of dimensions */
 /* https://gist.github.com/x0xMaximus/8626921 */
 void bacterialOptimization(int n)
@@ -286,7 +308,7 @@ void bacterialOptimization(int n)
                 //population.at(cellNum).stats = genRandSol(n);
                 genRandSol(population.at(cellNum));
                 population.at(cellNum).health = 0.0;
-                population.at(cellNum).fitness = evalFitness(population.at(cellNum).stats);
+                population.at(cellNum).fitness = evalFitness(population, cellNum);
             }
         }
     } // end ELDISP steps
@@ -294,9 +316,8 @@ void bacterialOptimization(int n)
     
 
     printf("Best: "); printVector(best.stats); printf("\n");
-    printf("Fitness: %f\n", evalFitness(best.stats));
+//    printf("Fitness: %f\n", evalFitness(best.stats));
 }
-#endif
 
 void fill_roster(std::vector<character_t> &roster)
 {
@@ -335,7 +356,7 @@ int main(int argc, char *argv[])
     for (int i = 0; i < population.size(); i++)
     {
         double fitness = evalFitness(population, i);
-        std::cout << "Fitness: " << fitness << std::endl;
+        std::cout << "Fitness: " << fitness << "\n\n";
     }
 
     return 0;

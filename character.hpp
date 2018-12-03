@@ -41,6 +41,8 @@ class character_t
             //first non-changable stat
             constValIndices[0] = rand() % NUM_STATS;
 
+			health = stats[MAX_HP]; //Starting health is their max health stat
+
                 //second non-changable stat, if they have one
             if(rand()%2) //"If an odd number, true, if an even number, false"
             {
@@ -59,7 +61,7 @@ class character_t
                 if(s!=constValIndices[0] && s!=constValIndices[1])
             	    stats.at(s)=((double)(rand() % MAX_STAT_VAL)+20); //random stat from 20-100 for every stat
 			
-			health = stats[0]; //Starting health is their max health stat
+			health = stats[MAX_HP]; //Starting health is their max health stat
 
             return;
         }
