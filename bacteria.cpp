@@ -8,211 +8,20 @@
 #include <iostream>
 #include <ctime>
 
+#include "tournament.hpp"
+#include "character.hpp"
+
 #define MAX_X 8
 #define MIN_X -8
 #define ROSTER_SIZE 20
 #define NUM_TOURNAMENTS 100
 
-enum STAT_TYPE {
-    MAX_HP,
-    STRENGTH,
-    MAGIC,
-    SKILL,
-    SPEED,
-    LUCK,
-    DEFENSE,
-    RESISTANCE,
-
-    // This defines how many stats there are
-    NUM_STATS
-};
-
-const int MAX_STAT_VAL = 100;
-
-class character_t
-{
-	public:
-        //Function members:
-        character_t()
-        {
-           for(int s=0;s<NUM_STATS;++s)
-            	stats.push_back((double)(rand() % MAX_STAT_VAL)+20); //random stat from 20-100 for every stat
-			
-            //Creating non changeable stats
-                //first non-changable stat
-            constValIndices[0] = rand() % NUM_STATS;
-
-                //second non-changable stat, if they have one
-            if(rand()%2) //"If an odd number, true, if an even number, false"
-            {
-                do
-                {
-                    constValIndices[1] = rand() % NUM_STATS;
-                }
-                while(constValIndices[1]!=constValIndices[0]); //Ensures two unique unchangable stats
-                
-            }
-
-			health = stats[0]; //Starting health is their max health stat
-
-        }
-
-        //Data members:
-    	std::vector<double> stats;
-    	double              fitness;
-    	double              health;
-    	int                 constValIndices[2] = {-1,-1 };
-    	double              popularity = 0; //All characters have 0 popularity, they gain more by winning tournaments
-        unsigned            numWins = 0;
-
-
-};
-
-/*
-battle calculations
-based on FE7 from https://fireemblem.fandom.com/wiki/Battle_Formulas
-
-accuracy = 2*skill + 0.5*luck
-dodge = 2*speed + luck
-chance to hit = accuracy - dodge
-
-phys damage = strength - defense
-mag damage = magic - resistance
-
-speed >= 4 
-2*damage
-
-critical = skill/2
-critical evade = luck
-critical chance = critical - crit evade
-
-critical damage = damage*3
-*/
-
-character_t tournament_match(character_t &fighter1, character_t &fighter2)
-{
-    
-	int fighter1Hit = fighter1.stats[SKILL]*2 + fighter1.stats[LUCK]/2 - fighter2.stats[SPEED]*2 + fighter2.stats[LUCK];
-	int fighter2Hit = fighter2.stats[SKILL]*2 + fighter2.stats[LUCK]/2 - fighter1.stats[SPEED]*2 + fighter1.stats[LUCK];
-
-    int fighter1Dmg = 0;
-	int fighter2Dmg = 0;
-        
-    int attack_type = rand()%2; //Randomly choose attack type this turn
-    if(attack_type) // if 1, physical attack. if 0, magical attack
-    {
-        fighter1Dmg = fighter1.stats[STRENGTH] - fighter2.stats[DEFENSE];
-        fighter2Dmg = fighter2.stats[STRENGTH] - fighter1.stats[DEFENSE];
-    }
-    else
-    {
-        fighter1Dmg = fighter1.stats[MAGIC] - fighter2.stats[RESISTANCE];
-        fighter2Dmg = fighter2.stats[MAGIC] - fighter1.stats[RESISTANCE];
-    }
-    
-    int fighter1Crit = fighter1.stats[SKILL]/2 - fighter2.stats[LUCK];
-    int fighter2Crit = fighter2.stats[SKILL]/2 - fighter1.stats[LUCK];
-		
-    //fight to death
-    while( (fighter1.health > 0) && (fighter2.health > 0) )
-	{
-		
-        //The faster of two will attack first
-        if(fighter1.stats[SPEED]>fighter2.stats[SPEED]) //fighter 1 will attack first
-        {
-            //fighter1
-                //roll a chance to hit
-            if(rand()%100 <= fighter1Hit)
-            {
-                //attack will go through, need to attack
-                if(rand()%100 <= fighter1Crit) // triples damage if critical
-                    fighter1Dmg *= 3;
-            
-                fighter2.health -= fighter1Dmg;
-            }
-
-            //fighter2
-            if(rand()%100 <= fighter2Hit)
-            {
-                if(rand()%100 <= fighter2Crit)
-            	    fighter2Dmg *= 3; 
-
-                fighter1.health -= fighter1Dmg;                                       
-            }
-        }
-        else
-        {
-            //fighter2 attacks first
-            if(rand()%100 <= fighter2Hit)
-            {
-                if(rand()%100 <= fighter2Crit)
-            	    fighter2Dmg *= 3; 
-
-                fighter1.health -= fighter1Dmg;                                       
-            }                
-
-            //fighter1 if(rand()%100 <= fighter2hit)
-            if(rand()%100 <= fighter1Hit)
-            {
-                //attack will go through, need to attack
-                if(rand()%100 <= fighter1Crit) // triples damage if critical
-                    fighter1Dmg *= 3;
-            
-                fighter2.health -= fighter1Dmg;
-            }
-        }            
-    }  
-
-    //someone dies
-    if(fighter1.health <= 0)
-		return fighter2;
-	else
-		return fighter1;
-}
-
-/*typedef struct bracket_match{
-    int fighter1_id = -1;
-    int fighter2_id = -1;
-
-    bracket_match *up_match = NULL;
-    bracket_match *down_match = NULL;
-
-    bracket_match *next_match = NULL;
-}*/
-
-
-void tournament(std::vector<character_t> &roster)
-{
-	for (int i = 0; i < ROSTER_SIZE; ++i)
-		for(int j = 0; j < ROSTER_SIZE; ++j)
-            tournament_match(roster[i], roster[j]);
-
-            /*
-				popularity = https://en.wikipedia.org/wiki/Binary_logarithm
-			*/
-    
-}
-
-int checkBalance(std::vector<character_t> &roster)
-{
-	for(int i = 0; i < NUM_TOURNAMENTS; ++i)
-		tournament(roster);
-	
-    std::sort(roster.begin(), roster.end(),
-            [](character_t a, character_t b) {
-                return a.numWins > b.numWins;
-            }
-    );
-
-    return abs(roster.front().numWins - roster.back().numWins);
-}
-
 double evalFitness(std::vector<character_t> population, int character_index)
 {
     double fitness = 0.0;
+    double win_range_scale = 1.5; // The win range should be more important than the number of wins
 
-    /* Method 1: add difference of the rest of the population's total stats
-     * Get average total stat count for the rest of the population */
+    /* get average total stat count for the rest of the population */
     double popAverageStatSum = 0.0;
     double curStatSum = std::accumulate(population.at(character_index).stats.begin(), population.at(character_index).stats.end(), 0.0f);
     for (int i = 0; i < population.size(); i++)
@@ -229,9 +38,31 @@ double evalFitness(std::vector<character_t> population, int character_index)
 
     fitness += abs(popAverageStatSum - curStatSum);
 
+    /* The current character's stats shouldn't be too similar */
+
+    /**********************************************************/
+
+
 #if 0
     /* Method 2: add the difference between each individual rest of the population */
 #endif
+
+    /* TODO - FIX COMPETE */
+    //int win_range = compete(population, character_index);
+
+    /**************** FAKE VALUES FOR NOW ****************/
+    int win_range = rand() % NUM_TOURNAMENTS;
+    int num_wins = rand() % NUM_TOURNAMENTS;
+
+    /* Winning more tournaments should improve the score */
+    fitness -= num_wins;
+
+    /* A large win range (e.g. someone's winning alot and someone else 
+     * isn't winning) should decrease the score */
+    fitness += win_range * win_range_scale;
+
+    std::cout << "  Num Wins: " << num_wins << "  Win Range: " << win_range << std::endl;
+    /*****************************************************/
 
     return fitness;
 }
@@ -334,7 +165,6 @@ void chemotaxisAndSwim(
         //printf("cell num %d\n", cellNum);
 
         // calculate the current cell's fitness
-        //population.at(cellNum).fitness = evalFitness(population.at(cellNum).stats) + cellInteraction(population, population.at(cellNum), ATTRACT_D, ATTRACT_W, REPEL_H, REPEL_W);
         population.at(cellNum).fitness = evalFitness(population, cellNum) + cellInteraction(population, population.at(cellNum), ATTRACT_D, ATTRACT_W, REPEL_H, REPEL_W);
 
         for (int stepNum = 0; stepNum < CHEMO_STEPS; stepNum++)
@@ -360,10 +190,9 @@ void chemotaxisAndSwim(
 
             }
 
-            // !!!! BJ !!! -- ADD THIS BACK IN/FIX ME !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-            // tempCell.fitness = evalFitness(tempCell.stats) + cellInteraction(population, tempCell, ATTRACT_D, ATTRACT_W, REPEL_H, REPEL_W);
-            // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
+            /* TODO - Fix me so that we can test a temp cell!!! */
+            //tempCell.fitness = evalFitness(tempCell.stats) + cellInteraction(population, tempCell, ATTRACT_D, ATTRACT_W, REPEL_H, REPEL_W);
+            tempCell.fitness = evalFitness(population, cellNum) + cellInteraction(population, tempCell, ATTRACT_D, ATTRACT_W, REPEL_H, REPEL_W);
             /* Exit if we didn't find a better solution? 
              * because we're MAXIMIZING a problem less is worse*/
             //if (tempCell.fitness > population.at(cellNum).fitness) {
@@ -482,9 +311,7 @@ void bacterialOptimization(int n)
                 //population.at(cellNum).stats = genRandSol(n);
                 genRandSol(population.at(cellNum));
                 population.at(cellNum).health = 0.0;
-                // !!!!!!!!! BJ !!!!!!!!!!!!!! - FIX/ADD ME BACK IN !!!!!!!!!!!!!!!!!!!!!!!!!
-                //population.at(cellNum).fitness = evalFitness(population.at(cellNum).stats);
-                // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+                population.at(cellNum).fitness = evalFitness(population, cellNum);
             }
         }
     } // end ELDISP steps
@@ -492,9 +319,7 @@ void bacterialOptimization(int n)
     
 
     printf("Best: "); printVector(best.stats); printf("\n");
-    // !!!!!!!!!!!!!! BJ !!!!!!!!!!!!!!!!!! - FIX/ADD ME BACK IN !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-    //printf("Fitness: %f\n", evalFitness(best.stats));
-    // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+//    printf("Fitness: %f\n", evalFitness(best.stats));
 }
 
 void fill_roster(std::vector<character_t> &roster)
@@ -523,19 +348,18 @@ int main(int argc, char *argv[])
 		bacterialOptimization(x);
 		printf("\n");
 	}*/
-
-    std::vector<character_t> population;
-    for (int i = 0; i < 2; i++) {
-        character_t newChar;
-        genRandSol(newChar);
-
-        population.push_back(newChar);
-    }
 	
+    std::vector<character_t> population;
+    for (int i = 0; i < ROSTER_SIZE; i++)
+    {
+        character_t character;
+        population.push_back(character);
+    }
+
     for (int i = 0; i < population.size(); i++)
     {
         double fitness = evalFitness(population, i);
-        std::cout << "Fitness: " << fitness << std::endl;
+        std::cout << "Fitness: " << fitness << "\n\n";
     }
 
     return 0;
