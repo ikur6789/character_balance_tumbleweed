@@ -20,6 +20,7 @@ double evalFitness(std::vector<character_t> population, int character_index)
 {
     double fitness = 0.0;
     double win_range_scale = 1.5; // The win range should be more important than the number of wins
+    double stats_range_scale = 0.5; // to scale the current character's range of stat values (to penalize if the stats are too similar)
 
     /* get average total stat count for the rest of the population */
     double popAverageStatSum = 0.0;
@@ -38,8 +39,11 @@ double evalFitness(std::vector<character_t> population, int character_index)
 
     fitness += abs(popAverageStatSum - curStatSum);
 
-    /* The current character's stats shouldn't be too similar */
-
+    /* The current character's stats shouldn't be too similar 
+     * If the range is large then this is a good thing -> subtract from fitness */
+    auto minmax = std::minmax_element(population.at(character_index).stats.begin(), population.at(character_index).stats.end());
+    std::cout << "Min and Max stat: " << *minmax.first << " " << *minmax.second << "\n";
+    fitness -= (double)(*minmax.second - *minmax.first) * stats_range_scale;
     /**********************************************************/
 
 
