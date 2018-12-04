@@ -50,11 +50,21 @@ char tournament_match(character_t &fighter1, character_t &fighter2)
     {
         fighter1Dmg = std::max<double>(fighter1.stats[STRENGTH] - fighter2.stats[DEFENSE], 0.1f); // a minimum of 0.1
         fighter2Dmg = std::max<double>(fighter2.stats[STRENGTH] - fighter1.stats[DEFENSE], 0.1f);
+		if(fighter1Dmg <= 0 || fighter2Dmg <= 0)
+		{
+			fighter1Dmg = 1;
+			fighter2Dmg = 1;
+		}
     }
     else
     {
         fighter1Dmg = std::max<double>(fighter1.stats[MAGIC] - fighter2.stats[RESISTANCE], 0.1f);
         fighter2Dmg = std::max<double>(fighter2.stats[MAGIC] - fighter1.stats[RESISTANCE], 0.1f);
+		if(fighter1Dmg <= 0 || fighter2Dmg <= 0)
+		{
+			fighter1Dmg = 1;
+			fighter2Dmg = 1;
+		}
     }
     
     double fighter1Crit = std::max<double>(fighter1.stats[SKILL]/2 - fighter2.stats[LUCK], 0.1f);
