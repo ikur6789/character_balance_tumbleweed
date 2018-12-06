@@ -11,7 +11,6 @@
 #define MAX_X 8
 #define MIN_X -8
 #define ROSTER_SIZE 20
-#define NUM_TOURNAMENTS 100
 
 double evalFitness(std::vector<character_t> population, int character_index)
 {
@@ -45,10 +44,10 @@ double evalFitness(std::vector<character_t> population, int character_index)
 #endif
 
     /* TODO - FIX COMPETE */
-    //int win_range = compete(population, character_index);
+    int win_range = compete(population, character_index);
 
     /**************** FAKE VALUES FOR NOW ****************/
-    int win_range = rand() % NUM_TOURNAMENTS;
+    //int win_range = rand() % NUM_TOURNAMENTS;
     int num_wins = rand() % NUM_TOURNAMENTS;
 
     /* Winning more tournaments should improve the score */

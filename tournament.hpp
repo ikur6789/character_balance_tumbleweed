@@ -11,7 +11,7 @@
 #include "character.hpp"
 
 #ifndef NUM_TOURNAMENTS
-#define NUM_TOURNAMENTS 100
+#define NUM_TOURNAMENTS 1
 #endif
 
 
@@ -36,39 +36,40 @@ critical chance = critical - crit evade
 critical damage = damage*3
 */
 
-char tournament_match(character_t &fighter1, character_t &fighter2)
+char tournament_match(character_t fighter1, character_t fighter2)
 {
-    
-	double fighter1Hit = fighter1.stats[SKILL]*2.0f + fighter1.stats[LUCK]/2.0f - fighter2.stats[SPEED]*2.0f + fighter2.stats[LUCK];
-	double fighter2Hit = fighter2.stats[SKILL]*2.0f + fighter2.stats[LUCK]/2.0f - fighter1.stats[SPEED]*2.0f + fighter1.stats[LUCK];
+	int fighter1Hit = fighter1.stats[SKILL]*2 + fighter1.stats[LUCK]/2 - fighter2.stats[SPEED]*2 + fighter2.stats[LUCK];
+	int fighter2Hit = fighter2.stats[SKILL]*2 + fighter2.stats[LUCK]/2 - fighter1.stats[SPEED]*2 + fighter1.stats[LUCK];
 
-    double fighter1Dmg = 0;
-	double fighter2Dmg = 0;
+	if(fighter1Hit <= 10)
+		fighter1Hit = 10;
+	if(fighter2Hit <= 10)
+		fighter2Hit = 10;
+
+    int fighter1Dmg = 0;
+	int fighter2Dmg = 0;
         
     int attack_type = rand()%2; //Randomly choose attack type this turn
     if(attack_type) // if 1, physical attack. if 0, magical attack
     {
-        fighter1Dmg = std::max<double>(fighter1.stats[STRENGTH] - fighter2.stats[DEFENSE], 0.1f); // a minimum of 0.1
-        fighter2Dmg = std::max<double>(fighter2.stats[STRENGTH] - fighter1.stats[DEFENSE], 0.1f);
-		if(fighter1Dmg <= 0 || fighter2Dmg <= 0)
-		{
-			fighter1Dmg = 1;
-			fighter2Dmg = 1;
-		}
-    }
+        fighter1Dmg = std::max<int>(fighter1.stats[STRENGTH] - fighter2.stats[DEFENSE], 1);
+        fighter2Dmg = std::max<int>(fighter2.stats[STRENGTH] - fighter1.stats[DEFENSE], 1);
+	}
     else
     {
-        fighter1Dmg = std::max<double>(fighter1.stats[MAGIC] - fighter2.stats[RESISTANCE], 0.1f);
-        fighter2Dmg = std::max<double>(fighter2.stats[MAGIC] - fighter1.stats[RESISTANCE], 0.1f);
-		if(fighter1Dmg <= 0 || fighter2Dmg <= 0)
-		{
-			fighter1Dmg = 1;
-			fighter2Dmg = 1;
-		}
+        fighter1Dmg = std::max<int>(fighter1.stats[MAGIC] - fighter2.stats[RESISTANCE], 1);
+        fighter2Dmg = std::max<int>(fighter2.stats[MAGIC] - fighter1.stats[RESISTANCE], 1);
     }
+
+	if(fighter1Dmg <= 0)
+		fighter1Dmg = 10;
+	if(fighter2Dmg <= 0)
+		fighter2Dmg = 10;
     
-    double fighter1Crit = std::max<double>(fighter1.stats[SKILL]/2 - fighter2.stats[LUCK], 0.1f);
-    double fighter2Crit = std::max<double>(fighter2.stats[SKILL]/2 - fighter1.stats[LUCK], 0.1f);
+    int fighter1Crit = std::max<int>(fighter1.stats[SKILL]/2 - fighter2.stats[LUCK], 1);
+    int fighter2Crit = std::max<int>(fighter2.stats[SKILL]/2 - fighter1.stats[LUCK], 1);
+
+	std::cout << "\tHealth\tHit\tDmg\tCrit" ;
 		
     //fight to death
     while( (fighter1.health > 0) && (fighter2.health > 0) )
@@ -83,8 +84,11 @@ char tournament_match(character_t &fighter1, character_t &fighter2)
             {
                 //attack will go through, need to attack
                 if(rand()%100 <= fighter1Crit) // triples damage if critical
-                    fighter1Dmg *= 3;
-            
+                {
+					std::cout << "CRITICAL ";
+					fighter1Dmg *= 3;
+				}
+				std::cout << "I HIT" << std::endl;
                 fighter2.health -= fighter1Dmg;
             }
 
@@ -92,8 +96,12 @@ char tournament_match(character_t &fighter1, character_t &fighter2)
             if(rand()%100 <= fighter2Hit)
             {
                 if(rand()%100 <= fighter2Crit)
-            	    fighter2Dmg *= 3; 
+            	{
+					std::cout << "CRITICAL ";
+				    fighter2Dmg *= 3; 
+				}
 
+				std::cout << "I HIT" << std::endl;
                 fighter1.health -= fighter1Dmg;                                       
             }
         }
@@ -103,8 +111,11 @@ char tournament_match(character_t &fighter1, character_t &fighter2)
             if(rand()%100 <= fighter2Hit)
             {
                 if(rand()%100 <= fighter2Crit)
-            	    fighter2Dmg *= 3; 
-
+            	{
+					std::cout << "CRITICAL ";
+				    fighter2Dmg *= 3; 
+				}
+                std::cout << "I HIT" << std::endl;
                 fighter1.health -= fighter1Dmg;                                       
             }                
 
@@ -113,14 +124,28 @@ char tournament_match(character_t &fighter1, character_t &fighter2)
             {
                 //attack will go through, need to attack
                 if(rand()%100 <= fighter1Crit) // triples damage if critical
-                    fighter1Dmg *= 3;
-            
+                {
+					std::cout << "CRITICAL ";
+				    fighter1Dmg *= 3;
+				}
+
+ 	            std::cout<<"I HIT" << std::endl;
                 fighter2.health -= fighter1Dmg;
             }
         }
+		
+		std::cout << "1\t" << fighter1.health << "\t";
+        std::cout << fighter1Hit <<"\t";
+		std::cout << fighter1Dmg << "\t";
+		std::cout << fighter1Crit << std::endl;
+		
+		std::cout << "2\t" << fighter2.health << "\t";
+		std::cout << fighter2Hit <<"\t";
+		std::cout << fighter2Dmg << "\t";
+		std::cout << fighter2Crit << std::endl;
 
-        std::cout << "Player 1 health: " << fighter1.health << std::endl;
-        std::cout << "Player 2 health: " << fighter2.health << std::endl;
+        
+		
     }  
 
     //someone dies
@@ -130,22 +155,32 @@ char tournament_match(character_t &fighter1, character_t &fighter2)
 		return 1;//fighter1;
 }
 
-/*typedef struct bracket_match{
-    int fighter1_id = -1;
-    int fighter2_id = -1;
 
-    bracket_match *up_match = NULL;
-    bracket_match *down_match = NULL;
-
-    bracket_match *next_match = NULL;
-}*/
-
-
-void tournament(std::vector<character_t> &roster, int character_index)
+void tournament(std::vector<character_t> roster, int character_index)
 {
+	char winner;
 	for(int i = 0; i < roster.size(); ++i)
         for(int j = 0; j < roster.size(); ++j)
-            tournament_match(roster[i], roster[j]);
+			if(i != j)
+	        {
+				winner = tournament_match(roster[i], roster[j]);
+
+				switch(winner)
+				{
+					case 1:
+						roster[i].numWins++;
+						break;
+					case 2:
+						roster[j].numWins++;
+						break;
+
+					default:
+						break;
+				}
+			}
+
+	for(int i = 0; i < roster.size(); ++i)
+		std::cout << "fighter " << i  << " " << roster[i].numWins << std::endl;
 
     return;
 }
@@ -157,8 +192,8 @@ int compete(std::vector<character_t> &roster, int character_index)
     {
         roster[i].numWins = 0;  //Reset wins before we evalute them 
     }
-    
-	for(int i = 0; i < NUM_TOURNAMENTS; ++i)
+	std::cout<<"character index: "<<character_index<<std::endl;
+//	for(int i = 0; i < NUM_TOURNAMENTS; ++i)
 		tournament(roster, character_index);
 	
     std::cout << "Before sort\n";
