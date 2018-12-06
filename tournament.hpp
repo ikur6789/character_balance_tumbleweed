@@ -69,7 +69,7 @@ char tournament_match(character_t fighter1, character_t fighter2)
     int fighter1Crit = std::max<int>(fighter1.stats[SKILL]/2 - fighter2.stats[LUCK], 1);
     int fighter2Crit = std::max<int>(fighter2.stats[SKILL]/2 - fighter1.stats[LUCK], 1);
 
-	std::cout << "\tHealth\tHit\tDmg\tCrit" ;
+	//std::cout << "\tHealth\tHit\tDmg\tCrit" ;
 		
     //fight to death
     while( (fighter1.health > 0) && (fighter2.health > 0) )
@@ -85,10 +85,10 @@ char tournament_match(character_t fighter1, character_t fighter2)
                 //attack will go through, need to attack
                 if(rand()%100 <= fighter1Crit) // triples damage if critical
                 {
-					std::cout << "CRITICAL ";
+					//std::cout << "CRITICAL ";
 					fighter1Dmg *= 3;
 				}
-				std::cout << "I HIT" << std::endl;
+				//std::cout << "I HIT" << std::endl;
                 fighter2.health -= fighter1Dmg;
             }
 
@@ -97,11 +97,11 @@ char tournament_match(character_t fighter1, character_t fighter2)
             {
                 if(rand()%100 <= fighter2Crit)
             	{
-					std::cout << "CRITICAL ";
+					//std::cout << "CRITICAL ";
 				    fighter2Dmg *= 3; 
 				}
 
-				std::cout << "I HIT" << std::endl;
+				//std::cout << "I HIT" << std::endl;
                 fighter1.health -= fighter1Dmg;                                       
             }
         }
@@ -112,10 +112,10 @@ char tournament_match(character_t fighter1, character_t fighter2)
             {
                 if(rand()%100 <= fighter2Crit)
             	{
-					std::cout << "CRITICAL ";
+					//std::cout << "CRITICAL ";
 				    fighter2Dmg *= 3; 
 				}
-                std::cout << "I HIT" << std::endl;
+                //std::cout << "I HIT" << std::endl;
                 fighter1.health -= fighter1Dmg;                                       
             }                
 
@@ -125,15 +125,16 @@ char tournament_match(character_t fighter1, character_t fighter2)
                 //attack will go through, need to attack
                 if(rand()%100 <= fighter1Crit) // triples damage if critical
                 {
-					std::cout << "CRITICAL ";
+					//std::cout << "CRITICAL ";
 				    fighter1Dmg *= 3;
 				}
 
- 	            std::cout<<"I HIT" << std::endl;
+ 	            //std::cout<<"I HIT" << std::endl;
                 fighter2.health -= fighter1Dmg;
             }
         }
 		
+        #if 0
 		std::cout << "1\t" << fighter1.health << "\t";
         std::cout << fighter1Hit <<"\t";
 		std::cout << fighter1Dmg << "\t";
@@ -143,8 +144,7 @@ char tournament_match(character_t fighter1, character_t fighter2)
 		std::cout << fighter2Hit <<"\t";
 		std::cout << fighter2Dmg << "\t";
 		std::cout << fighter2Crit << std::endl;
-
-        
+        #endif
 		
     }  
 
@@ -156,22 +156,26 @@ char tournament_match(character_t fighter1, character_t fighter2)
 }
 
 
-void tournament(std::vector<character_t> roster, int character_index)
+void tournament(std::vector<character_t> &roster, character_t &character, int character_index)
 {
 	char winner;
 	for(int i = 0; i < roster.size(); ++i)
         for(int j = 0; j < roster.size(); ++j)
 			if(i != j)
 	        {
-				winner = tournament_match(roster[i], roster[j]);
+                if (i == character_index)      winner = tournament_match(character, roster[j]);
+                else if (j == character_index) winner = tournament_match(roster[i], character);
+                else                           winner = tournament_match(roster[i], roster[j]);
 
 				switch(winner)
 				{
 					case 1:
-						roster[i].numWins++;
+                        if (i == character_index) character.numWins++;
+						else                      roster[i].numWins++;
 						break;
 					case 2:
-						roster[j].numWins++;
+                        if (j == character_index) character.numWins++;
+						else                      roster[j].numWins++;
 						break;
 
 					default:
@@ -181,23 +185,35 @@ void tournament(std::vector<character_t> roster, int character_index)
 
 	for(int i = 0; i < roster.size(); ++i)
 		std::cout << "fighter " << i  << " " << roster[i].numWins << std::endl;
+    
+    std::cout << "Character (" << character_index << ") " << character.numWins << std::endl;
 
     return;
 }
 
-int compete(std::vector<character_t> &roster, int character_index)
+int compete(std::vector<character_t> &roster, character_t &character, int character_index)
 {
     // Reset everybody's number of wins before we run the tournament
     for (int i = 0; i < roster.size(); i++)
     {
         roster[i].numWins = 0;  //Reset wins before we evalute them 
     }
+    character.numWins = 0;
 	std::cout<<"character index: "<<character_index<<std::endl;
 //	for(int i = 0; i < NUM_TOURNAMENTS; ++i)
-		tournament(roster, character_index);
+		tournament(roster, character, character_index);
 	
+    /* We need to exclude the fighter at character_index since he will
+     * always be zero and this will throw off the range */
+    std::vector<character_t> temp_roster;
+    for (int i = 0; i < roster.size(); ++i) {
+        if (i != character_index) {
+            temp_roster.push_back(roster.at(i));
+        }
+    }
+
     std::cout << "Before sort\n";
-    std::sort(roster.begin(), roster.end(),
+    std::sort(temp_roster.begin(), temp_roster.end(),
             [](character_t a, character_t b) {
                 return a.numWins > b.numWins;
             }
@@ -206,5 +222,5 @@ int compete(std::vector<character_t> &roster, int character_index)
     std::cout << "After sort\n";
 
     /* The range of the number of wins */
-    return abs(roster.front().numWins - roster.back().numWins);
+    return abs(temp_roster.front().numWins - temp_roster.back().numWins);
 }

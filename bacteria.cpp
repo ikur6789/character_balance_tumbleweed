@@ -4,9 +4,6 @@
 #include <cmath>
 #include <random>
 #include <algorithm>
-#include <numeric>
-#include <iostream>
-#include <ctime>
 
 #include "tournament.hpp"
 #include "character.hpp"
@@ -15,7 +12,7 @@
 #define MIN_X -8
 #define ROSTER_SIZE 20
 
-double evalFitness(std::vector<character_t> population, int character_index)
+double evalFitness(std::vector<character_t> population, character_t character, int character_index)
 {
     double fitness = 0.0;
     double win_range_scale = 1.5; // The win range should be more important than the number of wins
@@ -23,7 +20,7 @@ double evalFitness(std::vector<character_t> population, int character_index)
 
     /* get average total stat count for the rest of the population */
     double popAverageStatSum = 0.0;
-    double curStatSum = std::accumulate(population.at(character_index).stats.begin(), population.at(character_index).stats.end(), 0.0f);
+    double curStatSum = std::accumulate(character.stats.begin(), character.stats.end(), 0.0f);
     for (int i = 0; i < population.size(); i++)
     {
         /* Don't add the current character as an average */
@@ -38,9 +35,9 @@ double evalFitness(std::vector<character_t> population, int character_index)
 
     fitness += abs(popAverageStatSum - curStatSum);
 
-    /* The current character's stats shouldn't be too similar 
+    /* The current character's stats shouldn't be too similar
      * If the range is large then this is a good thing -> subtract from fitness */
-    auto minmax = std::minmax_element(population.at(character_index).stats.begin(), population.at(character_index).stats.end());
+    auto minmax = std::minmax_element(character.stats.begin(), character.stats.end());
     std::cout << "Min and Max stat: " << *minmax.first << " " << *minmax.second << "\n";
     fitness -= (double)(*minmax.second - *minmax.first) * stats_range_scale;
     /**********************************************************/
@@ -51,11 +48,12 @@ double evalFitness(std::vector<character_t> population, int character_index)
 #endif
 
     /* TODO - FIX COMPETE */
-    int win_range = compete(population, character_index);
+    int win_range = compete(population, character, character_index);
 
     /**************** FAKE VALUES FOR NOW ****************/
     //int win_range = rand() % NUM_TOURNAMENTS;
-    int num_wins = rand() % NUM_TOURNAMENTS;
+    //int num_wins = rand() % NUM_TOURNAMENTS;
+    int num_wins = character.numWins;
 
     /* Winning more tournaments should improve the score */
     fitness -= num_wins;
@@ -98,8 +96,9 @@ std::vector<double> getRandDir(int n)
     std::vector<double> d(n);
 	
 	/* THESE CAN BE PLAYED WITH!!! */
-    double MIN = -1.0;
-    double MAX = 1.0;
+    // BJ changed as our values have a much wider value now
+    double MIN = -3.0;
+    double MAX = 3.0;
 
     /* Since it's just a direction we want between 0 and 1,
      * and the values will be scaled accordingly 
@@ -168,13 +167,13 @@ void chemotaxisAndSwim(
         //printf("cell num %d\n", cellNum);
 
         // calculate the current cell's fitness
-        population.at(cellNum).fitness = evalFitness(population, cellNum) + cellInteraction(population, population.at(cellNum), ATTRACT_D, ATTRACT_W, REPEL_H, REPEL_W);
+        population.at(cellNum).fitness = evalFitness(population, population.at(cellNum), cellNum) + cellInteraction(population, population.at(cellNum), ATTRACT_D, ATTRACT_W, REPEL_H, REPEL_W);
 
         for (int stepNum = 0; stepNum < CHEMO_STEPS; stepNum++)
         {
             /* Create a temp cell and have it take a random step */
             character_t tempCell;
-            tempCell.health = population.at(cellNum).health;
+            tempCell.bacteriaHealth = population.at(cellNum).bacteriaHealth;
             tempCell.stats.reserve(n);
             std::vector<double> dir = getRandDir(n);
 
@@ -195,7 +194,7 @@ void chemotaxisAndSwim(
 
             /* TODO - Fix me so that we can test a temp cell!!! */
             //tempCell.fitness = evalFitness(tempCell.stats) + cellInteraction(population, tempCell, ATTRACT_D, ATTRACT_W, REPEL_H, REPEL_W);
-            tempCell.fitness = evalFitness(population, cellNum) + cellInteraction(population, tempCell, ATTRACT_D, ATTRACT_W, REPEL_H, REPEL_W);
+            tempCell.fitness = evalFitness(population, tempCell, cellNum) + cellInteraction(population, tempCell, ATTRACT_D, ATTRACT_W, REPEL_H, REPEL_W);
             /* Exit if we didn't find a better solution? 
              * because we're MAXIMIZING a problem less is worse*/
             //if (tempCell.fitness > population.at(cellNum).fitness) {
@@ -204,9 +203,9 @@ void chemotaxisAndSwim(
             }
             else {
                 /* Otherwise the cell = the new cell, and add to the
-                * overall health of the cell */
+                * overall bacteriaHealth of the cell */
                 population.at(cellNum) = tempCell;
-                population.at(cellNum).health += tempCell.fitness;
+                population.at(cellNum).bacteriaHealth += tempCell.fitness;
             }
         }
 
@@ -221,11 +220,11 @@ void eliminatePop(
     std::vector<character_t> &population
 )
 {
-    /* Sort by health 
-     * cells now sorted greatest health -> least health */
+    /* Sort by bacteriaHealth 
+     * cells now sorted greatest bacteriaHealth -> least bacteriaHealth */
     std::sort(population.begin(), population.end(),
             [](character_t a, character_t b) {
-                return a.health > b.health;
+                return a.bacteriaHealth > b.bacteriaHealth;
             }
     );
 
@@ -269,7 +268,7 @@ void bacterialOptimization(int n)
         //population.at(i).stats = genRandSol(n);
         genRandSol(population.at(i));
         population.at(i).fitness = 0.0;
-        population.at(i).health = 0.0;
+        population.at(i).bacteriaHealth = 0.0;
     //    printVector(population.at(i).stats);
     //    printf("\n");
     }
@@ -313,8 +312,8 @@ void bacterialOptimization(int n)
             if (num < ELIM_PROB) {
                 //population.at(cellNum).stats = genRandSol(n);
                 genRandSol(population.at(cellNum));
-                population.at(cellNum).health = 0.0;
-                population.at(cellNum).fitness = evalFitness(population, cellNum);
+                population.at(cellNum).bacteriaHealth = 0.0;
+                population.at(cellNum).fitness = evalFitness(population, population.at(cellNum), cellNum);
             }
         }
     } // end ELDISP steps
@@ -361,7 +360,7 @@ int main(int argc, char *argv[])
 
     for (int i = 0; i < population.size(); i++)
     {
-        double fitness = evalFitness(population, i);
+        double fitness = evalFitness(population, population.at(i), i);
         std::cout << "Fitness: " << fitness << "\n\n";
     }
 

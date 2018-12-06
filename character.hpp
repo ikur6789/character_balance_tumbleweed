@@ -69,7 +69,8 @@ class character_t
         //Data members:
     	std::vector<double> stats;
     	double              fitness;
-    	double              health;
+    	double              health;         // character health for tournaments
+        double              bacteriaHealth; // bacteria health for bacterial foraging algorithm
     	int                 constValIndices[2] = {-1,-1 };
     	double              popularity = 0; //All characters have 0 popularity, they gain more by winning tournaments
         unsigned            numWins = 0;
