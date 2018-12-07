@@ -2,4 +2,6 @@ a.out
 
 bacteria\.exe
 
-\.vscode*
+\.vscode
+
+.vscode*
