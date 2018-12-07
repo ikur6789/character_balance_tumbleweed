@@ -6,8 +6,11 @@
 void printInitCSV(std::vector<character_t> population)
 {
     FILE *f;
-    if(access("init_stats.csv", F_OK))
+    if(!access("init_stats.csv", F_OK))
+    {
+        printf("goodbye\n");
         return;
+    }
     else
     {
         f = fopen("init_stats.csv", "w");
@@ -16,8 +19,8 @@ void printInitCSV(std::vector<character_t> population)
 
         for(int i=0;i<population.size();++i)
         {
-            fprintf(f, "%d,", i, population.at(i).fitness);
-            for(int j=0;j<MAX_STAT_VAL;++j)
+            fprintf(f, "%d,", i);
+            for(int j=0;j<NUM_STATS;++j)
                 fprintf(f, "%f,", population.at(i).stats[j]);
             fprintf(f, "\n");
         }
@@ -31,7 +34,7 @@ void printInitCSV(std::vector<character_t> population)
 void printResultsCSV(std::vector<character_t> population)
 {
     FILE *f;
-    if(access("results.csv", F_OK))
+    if(!access("results.csv", F_OK))
     {
         fprintf(stderr, "Results file already exsists, please move or rename before running again\n");
         fprintf(stderr, "NOTE: No results will be saved to disk this run\n");
@@ -46,7 +49,7 @@ void printResultsCSV(std::vector<character_t> population)
         for(int i=0;i<population.size();++i)
         {
             fprintf(f, "%d,%f,", i, population.at(i).fitness);
-            for(int j=0;j<MAX_STAT_VAL;++j)
+            for(int j=0;j<NUM_STATS;++j)
                 fprintf(f, "%f,", population.at(i).stats[j]);
             fprintf(f, "\n");
         }

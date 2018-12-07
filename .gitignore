@@ -5,3 +5,5 @@ bacteria\.exe
 \.vscode
 
 .vscode*
+
+*.csv
