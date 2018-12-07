@@ -12,6 +12,8 @@
 #define MIN_X -8
 #define ROSTER_SIZE 20
 
+
+
 double evalFitness(std::vector<character_t> population, character_t character, int character_index)
 {
     double fitness = 0.0;
@@ -30,15 +32,15 @@ double evalFitness(std::vector<character_t> population, character_t character, i
     /* Remove the current character from the size */
     popAverageStatSum /= (population.size() - 1);
 
-    std::cout << "Rest of population average: " << popAverageStatSum << std::endl;
-    std::cout << "Current Character sum: " << curStatSum << std::endl;
+    //std::cout << "Rest of population average: " << popAverageStatSum << std::endl;
+    //std::cout << "Current Character sum: " << curStatSum << std::endl;
 
     fitness += abs(popAverageStatSum - curStatSum);
 
     /* The current character's stats shouldn't be too similar
      * If the range is large then this is a good thing -> subtract from fitness */
     auto minmax = std::minmax_element(character.stats.begin(), character.stats.end());
-    std::cout << "Min and Max stat: " << *minmax.first << " " << *minmax.second << "\n";
+    //std::cout << "Min and Max stat: " << *minmax.first << " " << *minmax.second << "\n";
     fitness -= (double)(*minmax.second - *minmax.first) * stats_range_scale;
     /**********************************************************/
 
@@ -47,12 +49,8 @@ double evalFitness(std::vector<character_t> population, character_t character, i
     /* Method 2: add the difference between each individual rest of the population */
 #endif
 
-    /* TODO - FIX COMPETE */
     int win_range = compete(population, character, character_index);
 
-    /**************** FAKE VALUES FOR NOW ****************/
-    //int win_range = rand() % NUM_TOURNAMENTS;
-    //int num_wins = rand() % NUM_TOURNAMENTS;
     int num_wins = character.numWins;
 
     /* Winning more tournaments should improve the score */
@@ -62,7 +60,7 @@ double evalFitness(std::vector<character_t> population, character_t character, i
      * isn't winning) should decrease the score */
     fitness += win_range * win_range_scale;
 
-    std::cout << "  Num Wins: " << num_wins << "  Win Range: " << win_range << std::endl;
+    //std::cout << "  Num Wins: " << num_wins << "  Win Range: " << win_range << std::endl;
     /*****************************************************/
 
     return fitness;
@@ -184,12 +182,13 @@ void chemotaxisAndSwim(
                 //printf("Dir: "); printVector(dir); printf("\n");
                 //printf("curcell stats: "); printVector(curCell.stats); printf("\n");
                 //printf("tempcell stats size: %d\n", tempCell.stats.size());
-                tempCell.stats.push_back( curCell.stats.at(i) + STEP_SIZE * dir.at(i) );
+                //tempCell.stats.push_back( curCell.stats.at(i) + STEP_SIZE * dir.at(i) );
+                tempCell.stats.at(i) = curCell.stats.at(i) + STEP_SIZE * dir.at(i);
                 //printf("After tumble\n");
 
-                if (tempCell.stats.at(i) > MAX_X) tempCell.stats.at(i) = MAX_X;
+/*                if (tempCell.stats.at(i) > MAX_X) tempCell.stats.at(i) = MAX_X;
                 if (tempCell.stats.at(i) < MIN_X) tempCell.stats.at(i) = MIN_X;
-
+*/
             }
 
             /* TODO - Fix me so that we can test a temp cell!!! */
@@ -216,17 +215,15 @@ void chemotaxisAndSwim(
 }
 
 /* Eliminate part of the population */
-void eliminatePop(
-    std::vector<character_t> &population
-)
+void eliminatePop( std::vector<character_t> &population )
 {
     /* Sort by bacteriaHealth 
      * cells now sorted greatest bacteriaHealth -> least bacteriaHealth */
     std::sort(population.begin(), population.end(),
-            [](character_t a, character_t b) {
+               [](character_t a, character_t b) {
                 return a.bacteriaHealth > b.bacteriaHealth;
-            }
-    );
+                }
+             );
 
     /* Replace the bottom half (worse) of the cells
      * with their top half (better) counterparts 
@@ -256,17 +253,18 @@ void bacterialOptimization(int n)
     const double REPEL_H = 0.1;       // repel coefficient
     const double REPEL_W = 10.0;      // repel weight 
 
-    std::vector<character_t> population(POP_SIZE);
-
-    character_t best; // best cell;
-    best.fitness = -9999;
+    //std::vector<character_t> population(POP_SIZE);
+    std::vector<character_t> population;
 
     /* Generate the initial population */
     //printf("Initial pop:\n");
     for (int i = 0; i < POP_SIZE; i++)
     {
         //population.at(i).stats = genRandSol(n);
-        genRandSol(population.at(i));
+        //genRandSol(population.at(i));
+        character_t character;
+        population.push_back(character);
+
         population.at(i).fitness = 0.0;
         population.at(i).bacteriaHealth = 0.0;
     //    printVector(population.at(i).stats);
@@ -277,8 +275,10 @@ void bacterialOptimization(int n)
     /* Elimination/Dispersal Events */
     for (int l = 0; l < ELDISP_STEPS; l++)
     {
+        std::cout << "Elimination Step" << l << std::endl;
         for (int k = 0; k < REPRO_STEPS; k++)
         {
+            std::cout << "Reproduction Step" << k << std::endl;
             for (int j = 0; j < CHEMO_STEPS; j++)
             {
                 /* Swim about */
@@ -287,31 +287,33 @@ void bacterialOptimization(int n)
                     REPEL_W);
 
                 /* Check for a new best */
-                for (character_t cell : population)
-                {
-                    /* -9999 for the initial cell */
+                //for (character_t cell : population)
+                //{
+                 /* -9999 for the initial cell */
                     //if (best.fitness == -9999 || cell.fitness >= best.fitness)
-                    if (cell.fitness > best.fitness)
-                    {
-                        best = cell;
-                        //printf("New Best: "); printVector(best.stats); printf("\n");
-                        //printf("Fitness: %f\n", evalFitness(best.stats));
-                    }
-                }
-            } // end CHEMO_STEPS
-
+                        //if (cell.fitness > best.fitness)
+                        //{
+                            //best = cell;
+                            //printf("New Best: "); printVector(best.stats); printf("\n");
+                            //printf("Fitness: %f\n", evalFitness(best.stats));
+                        //}
+                //}
+            }// end CHEMO_STEPS
+    
             // elimination step
             eliminatePop(population);
         } // end REPRO_STEPS
-
+    
         /* Randomly replace a cell at a new location */
         const double MAXPROB = 1.0;
         for (int cellNum = 0; cellNum < population.size(); cellNum++)
         {
             double num = (double)rand() / ((double)RAND_MAX / (MAXPROB));
-            if (num < ELIM_PROB) {
+            if (num < ELIM_PROB) 
+            {
                 //population.at(cellNum).stats = genRandSol(n);
-                genRandSol(population.at(cellNum));
+                //genRandSol(population.at(cellNum));
+                population.at(cellNum).generateRandomStats();
                 population.at(cellNum).bacteriaHealth = 0.0;
                 population.at(cellNum).fitness = evalFitness(population, population.at(cellNum), cellNum);
             }
@@ -320,11 +322,11 @@ void bacterialOptimization(int n)
 
     
 
-    printf("Best: "); printVector(best.stats); printf("\n");
+    //printf("Best: "); printVector(best.stats); printf("\n");
 //    printf("Fitness: %f\n", evalFitness(best.stats));
 }
 
-void fill_roster(std::vector<character_t> &roster)
+/*void fill_roster(std::vector<character_t> &roster)
 {
     for(int i=0;i<ROSTER_SIZE;++i)
     {
@@ -333,26 +335,15 @@ void fill_roster(std::vector<character_t> &roster)
     }
 
     return;
-}
+}*/
 
 int main(int argc, char *argv[])
 {
     srand(time(0));
-
-	std::vector<int> dims = {1, 2, 3, 5, 8, 13};
-
-	std::vector<character_t> roster;
-	fill_roster(roster);
 	
-	/*for(int x : dims)
-	{
-		printf("N = %d\n--------------\n", x);
-		bacterialOptimization(x);
-		printf("\n");
-	}*/
-	
-    std::vector<character_t> population;
-    for (int i = 0; i < ROSTER_SIZE; i++)
+	bacterialOptimization(8);
+    
+    /*for (int i = 0; i < ROSTER_SIZE; i++)
     {
         character_t character;
         population.push_back(character);
@@ -361,8 +352,8 @@ int main(int argc, char *argv[])
     for (int i = 0; i < population.size(); i++)
     {
         double fitness = evalFitness(population, population.at(i), i);
-        std::cout << "Fitness: " << fitness << "\n\n";
+        //std::cout << "Fitness: " << fitness << "\n\n";
     }
-
+*/
     return 0;
 }

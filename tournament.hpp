@@ -80,7 +80,7 @@ char tournament_match(character_t fighter1, character_t fighter2)
         {
             //fighter1
                 //roll a chance to hit
-            if(rand()%100 <= fighter1Hit)
+            if(rand()%50 <= fighter1Hit)
             {
                 //attack will go through, need to attack
                 if(rand()%100 <= fighter1Crit) // triples damage if critical
@@ -93,7 +93,7 @@ char tournament_match(character_t fighter1, character_t fighter2)
             }
 
             //fighter2
-            if(rand()%100 <= fighter2Hit)
+            if(rand()%50 <= fighter2Hit)
             {
                 if(rand()%100 <= fighter2Crit)
             	{
@@ -108,7 +108,7 @@ char tournament_match(character_t fighter1, character_t fighter2)
         else
         {
             //fighter2 attacks first
-            if(rand()%100 <= fighter2Hit)
+            if(rand()%50 <= fighter2Hit)
             {
                 if(rand()%100 <= fighter2Crit)
             	{
@@ -120,7 +120,7 @@ char tournament_match(character_t fighter1, character_t fighter2)
             }                
 
             //fighter1 if(rand()%100 <= fighter2hit)
-            if(rand()%100 <= fighter1Hit)
+            if(rand()%50 <= fighter1Hit)
             {
                 //attack will go through, need to attack
                 if(rand()%100 <= fighter1Crit) // triples damage if critical
@@ -163,19 +163,28 @@ void tournament(std::vector<character_t> &roster, character_t &character, int ch
         for(int j = 0; j < roster.size(); ++j)
 			if(i != j)
 	        {
-                if (i == character_index)      winner = tournament_match(character, roster[j]);
-                else if (j == character_index) winner = tournament_match(roster[i], character);
-                else                           winner = tournament_match(roster[i], roster[j]);
+                //printf("Fighter %d vs %d\n", i,j);
+                if (i == character_index)      
+                    winner = tournament_match(character, roster[j]);
+                else 
+                    if (j == character_index) 
+                        winner = tournament_match(roster[i], character);
+                else                          
+                     winner = tournament_match(roster[i], roster[j]);
 
 				switch(winner)
 				{
 					case 1:
-                        if (i == character_index) character.numWins++;
-						else                      roster[i].numWins++;
+                        if (i == character_index) 
+                            character.numWins++;
+						else                      
+                            roster[i].numWins++;
 						break;
 					case 2:
-                        if (j == character_index) character.numWins++;
-						else                      roster[j].numWins++;
+                        if (j == character_index) 
+                            character.numWins++;
+						else
+                            roster[j].numWins++;
 						break;
 
 					default:
@@ -184,9 +193,9 @@ void tournament(std::vector<character_t> &roster, character_t &character, int ch
 			}
 
 	for(int i = 0; i < roster.size(); ++i)
-		std::cout << "fighter " << i  << " " << roster[i].numWins << std::endl;
+		//std::cout << "fighter " << i  << "\t" << roster[i].numWins << std::endl;
     
-    std::cout << "Character (" << character_index << ") " << character.numWins << std::endl;
+    //std::cout << "Character (" << character_index << ") " << character.numWins << std::endl;
 
     return;
 }
@@ -199,7 +208,7 @@ int compete(std::vector<character_t> &roster, character_t &character, int charac
         roster[i].numWins = 0;  //Reset wins before we evalute them 
     }
     character.numWins = 0;
-	std::cout<<"character index: "<<character_index<<std::endl;
+	//std::cout<<"character index: "<<character_index<<std::endl;
 //	for(int i = 0; i < NUM_TOURNAMENTS; ++i)
 		tournament(roster, character, character_index);
 	
@@ -212,14 +221,14 @@ int compete(std::vector<character_t> &roster, character_t &character, int charac
         }
     }
 
-    std::cout << "Before sort\n";
+    //std::cout << "Before sort\n";
     std::sort(temp_roster.begin(), temp_roster.end(),
             [](character_t a, character_t b) {
                 return a.numWins > b.numWins;
             }
     );
 
-    std::cout << "After sort\n";
+    //std::cout << "After sort\n";
 
     /* The range of the number of wins */
     return abs(temp_roster.front().numWins - temp_roster.back().numWins);
