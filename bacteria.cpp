@@ -217,7 +217,7 @@ void eliminatePop( std::vector<character_t> &population )
 void bacterialOptimization(int n)
 {
     const int    POP_SIZE = 20;     // population size - book uses 50
-    const double STEP_SIZE = 0.1;   // Same as book
+    const double STEP_SIZE = 1.0;   // Same as book
     const int    ELDISP_STEPS = 5;  // elimination/dispersal events
     const int    REPRO_STEPS = 4;   // reproduction steps
     const int    CHEMO_STEPS = 350; // chemotaxis/swim events - set as 7*ELDISP_STEPS
