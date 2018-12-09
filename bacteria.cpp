@@ -163,8 +163,14 @@ void chemotaxisAndSwim(
 
             character_t curCell = population.at(cellNum);
             //changes the stats, moves bacteria (character) around
-            for (int i = 0; i < n; i++)
-                tempCell.stats.at(i) = curCell.stats.at(i) + STEP_SIZE * dir.at(i);
+            for (int i = 0; i < n; i++) {
+                if (i != curCell.constValIndices[0] && i != curCell.constValIndices[1]) {
+                    tempCell.stats.at(i) = curCell.stats.at(i) + STEP_SIZE * dir.at(i);
+                }
+                else {
+                    std::cout << "Ignoring const val index: " << i << std::endl;
+                }
+            }
 
             tempCell.fitness = evalFitness(population, tempCell, cellNum) + cellInteraction(population, tempCell, ATTRACT_D, ATTRACT_W, REPEL_H, REPEL_W);
             /* Exit if we didn't find a better solution? 
