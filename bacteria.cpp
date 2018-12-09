@@ -21,7 +21,7 @@ double evalFitness(std::vector<character_t> population, character_t character, i
 {
     double fitness = 0.0;
     double win_range_scale = 1.5; // The win range should be more important than the number of wins
-    double stats_range_scale = 0.5; // to scale the current character's range of stat values (to penalize if the stats are too similar)
+    double stats_range_scale = 5.0; // to scale the current character's range of stat values (to penalize if the stats are too similar)
 
     /* get average total stat count for the rest of the population */
     double popAverageStatSum = 0.0;
@@ -36,6 +36,23 @@ double evalFitness(std::vector<character_t> population, character_t character, i
     popAverageStatSum /= (population.size() - 1);
 
     fitness += abs(popAverageStatSum - curStatSum);
+    
+    double singleStatAverage = 0.0;
+	for(int s = 0; s < population.at(0).stats.size(); ++s)
+	{
+			for (int i = 0; i < population.size(); i++)
+			{
+				/* Don't add the current character as an average */
+				if (i != character_index)
+				{
+					singleStatAverage += population.at(i).stats.at(s);
+				}
+			}
+
+			singleStatAverage /= (population.size() - 1);
+
+			fitness += abs(singleStatAverage - character.stats.at(s));
+	}
 
     /* The current character's stats shouldn't be too similar
      * If the range is large then this is a good thing -> subtract from fitness */
