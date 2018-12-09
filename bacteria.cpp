@@ -35,7 +35,7 @@ double evalFitness(std::vector<character_t> population, character_t character, i
     /* Remove the current character from the size */
     popAverageStatSum /= (population.size() - 1);
 
-    fitness += abs(popAverageStatSum - curStatSum);
+    fitness += pow(abs(popAverageStatSum - curStatSum), 2);
     
     double singleStatAverage = 0.0;
 	for(int s = 0; s < population.at(0).stats.size(); ++s)
