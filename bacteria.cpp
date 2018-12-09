@@ -167,9 +167,9 @@ void chemotaxisAndSwim(
                 if (i != curCell.constValIndices[0] && i != curCell.constValIndices[1]) {
                     tempCell.stats.at(i) = curCell.stats.at(i) + STEP_SIZE * dir.at(i);
                 }
-                else {
-                    std::cout << "Ignoring const val index: " << i << std::endl;
-                }
+                //else {
+                //    std::cout << "Ignoring const val index: " << i << std::endl;
+                //}
             }
 
             tempCell.fitness = evalFitness(population, tempCell, cellNum) + cellInteraction(population, tempCell, ATTRACT_D, ATTRACT_W, REPEL_H, REPEL_W);
@@ -235,6 +235,9 @@ void bacterialOptimization(int n)
     {
         //population.at(i).stats = genRandSol(n);
         //genRandSol(population.at(i));
+
+        character_t character;
+        population.push_back(character);
         
 		population.at(i).fitness = 0.0;
         population.at(i).bacteriaHealth = 0.0;
