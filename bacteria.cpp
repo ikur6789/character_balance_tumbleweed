@@ -21,7 +21,7 @@ double evalFitness(std::vector<character_t> population, character_t character, i
 {
     double fitness = 0.0;
     double win_range_scale = 1.5; // The win range should be more important than the number of wins
-    double stats_range_scale = 0.5; // to scale the current character's range of stat values (to penalize if the stats are too similar)
+    double stats_range_scale = 5.0; // to scale the current character's range of stat values (to penalize if the stats are too similar)
 
     /* get average total stat count for the rest of the population */
     double popAverageStatSum = 0.0;
