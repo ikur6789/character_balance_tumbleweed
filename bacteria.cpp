@@ -4,6 +4,7 @@
 #include <cmath>
 #include <random>
 #include <algorithm>
+#include <cfloat>
 
 #include "tournament.hpp"
 #include "character.hpp"
@@ -13,7 +14,8 @@
 #define MIN_X -8
 #define ROSTER_SIZE 20
 
-
+std::vector<character_t> bestPopulation;
+double bestFitness = DBL_MAX;
 
 double evalFitness(std::vector<character_t> population, character_t character, int character_index)
 {
@@ -268,8 +270,25 @@ void bacterialOptimization(int n)
                 population.at(cellNum).fitness = evalFitness(population, population.at(cellNum), cellNum);
             }
         }
+
+		double currentFitness = 0;
+		for(character_t & character : population)
+		{
+			currentFitness += character.fitness;	
+		}	
+
+		if(currentFitness < bestFitness)
+		{
+			bestPopulation = population;
+			bestFitness = currentFitness;
+		}
+
     } // end ELDISP steps
-    printResultsCSV(population);
+   
+	printResultsCSV(population);
+
+	printf("%d\n", bestFitness);		
+
 }//end of bacterialOptimization function
 
 int main(int argc, char *argv[])
