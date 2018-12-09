@@ -60,3 +60,19 @@ void printResultsCSV(std::vector<character_t> population)
 
 }
 
+void sendUpdatesToCSV(std::vector<character_t> population, FILE *f)
+{
+    
+       // f = fopen("results.csv", "w");
+        static int update = 0;
+        fprintf(f, "Round,%d,-,-,-,-,-,-,-,-\n", ++update);
+
+        for(int i=0;i<population.size();++i)
+        {
+            for(int j=0;j<NUM_STATS;++j)
+                fprintf(f, "%f,", population.at(i).stats[j]);
+            fprintf(f, "\n");
+        }
+        return;
+}
+
