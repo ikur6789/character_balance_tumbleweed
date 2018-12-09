@@ -8,7 +8,7 @@ void printInitCSV(std::vector<character_t> population)
     FILE *f;
     if(!access("init_stats.csv", F_OK))
     {
-        printf("goodbye\n");
+        fprintf(stderr, "Starting stats file already exsists, please move or rename before running again\n");
         return;
     }
     else
@@ -59,3 +59,4 @@ void printResultsCSV(std::vector<character_t> population)
     }
 
 }
+
