@@ -69,21 +69,20 @@ void printVector(std::vector<double> v)
     }
 }
 
-/* might not use this anymore
-void genRandSol(character_t &character)
-{
-    //Set each stat value
-    for (int i = 0; i < NUM_STATS; i++)
-    {
-        character.stats.push_back( (double) (rand() % MAX_STAT_VAL) );
-    }
+//void genRandSol(character_t &character)
+//{
+    /* Set each stat value */
+//    for (int i = 0; i < NUM_STATS; i++)
+//    {
+//        character.stats.push_back( (double) (rand() % MAX_STAT_VAL) );
+//    }
 
-    //Pick one or two immutable stats
-    int stat1 = rand() % NUM_STATS;
-    character.constValIndices[0] = stat1;
+    /* Pick one or two immutable stats */
+//    int stat1 = rand() % NUM_STATS;
+//    character.constValIndices[0] = stat1;
 
-    character.popularity = rand() % NUM_STATS;
-}*/
+//    character.popularity = rand() % NUM_STATS;
+//}
 
 std::vector<double> getRandDir(int n)
 {
@@ -228,10 +227,10 @@ void bacterialOptimization(int n)
     /* Generate the initial population */
     for (int i = 0; i < POP_SIZE; i++)
     {
-        character_t character;
-        population.push_back(character);
-
-        population.at(i).fitness = 0.0;
+        //population.at(i).stats = genRandSol(n);
+        //genRandSol(population.at(i));
+        
+		population.at(i).fitness = 0.0;
         population.at(i).bacteriaHealth = 0.0;
     }
 
@@ -277,8 +276,9 @@ void bacterialOptimization(int n)
         for (int cellNum = 0; cellNum < population.size(); cellNum++)
         {
             double num = (double)rand() / ((double)RAND_MAX / (MAXPROB));
-            if (num < ELIM_PROB) 
-            {
+            if (num < ELIM_PROB) {
+                //population.at(cellNum).stats = genRandSol(n);
+                //genRandSol(population.at(cellNum));
                 population.at(cellNum).generateRandomStats();
                 population.at(cellNum).bacteriaHealth = 0.0;
                 population.at(cellNum).fitness = evalFitness(population, population.at(cellNum), cellNum);

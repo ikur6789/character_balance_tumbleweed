@@ -23,7 +23,7 @@ accuracy = 2*skill + 0.5*luck
 dodge = 2*speed + luck
 chance to hit = accuracy - dodge
 
-phys damage = strength - defenseX_X 8
+phys damage = strength - defense
 mag damage = magic - resistance
 
 speed >= 4 
