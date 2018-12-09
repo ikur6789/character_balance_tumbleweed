@@ -247,6 +247,8 @@ void bacterialOptimization(int n)
 
     std::vector<character_t> population;
 
+    FILE *update_file = fopen("updates.csv", "w");
+
     /* Generate the initial population */
     for (int i = 0; i < POP_SIZE; i++)
     {
@@ -287,6 +289,8 @@ void bacterialOptimization(int n)
 					bestPopulation = population;
 					bestFitness = currentFitness;
 
+                    sendUpdatesToCSV(bestPopulation, update_file);
+
 					printf("%f\n", bestFitness);		
 				}
 
@@ -315,14 +319,17 @@ void bacterialOptimization(int n)
    
 	printResultsCSV(population);
 
-	printf("%f\n", bestFitness);		
+	printf("%f\n", bestFitness);
+
+    fclose(update_file);
+    return;
 
 }//end of bacterialOptimization function
 
 int main(int argc, char *argv[])
 {
     srand(time(0));
-	
+
 	bacterialOptimization(8);
 
     return 0;
