@@ -51,7 +51,12 @@ double evalFitness(std::vector<character_t> population, character_t character, i
 
 			singleStatAverage /= (population.size() - 1);
 
-			fitness -= pow(abs(singleStatAverage - character.stats.at(s)), 2);
+			double diff = pow(abs(singleStatAverage - character.stats.at(s)), 1);
+			if(abs(diff) < 0.00001)
+				fitness += 1/diff;
+			else
+				fitness += 1/0.00001;
+			
 	}
 
     /* The current character's stats shouldn't be too similar
