@@ -230,8 +230,33 @@ void eliminatePop( std::vector<character_t> &population )
      * this could be played with/adjusted
      * to calculate based on the total number of cells
      * we want to replace !!! */
-    for (int i = 0; i < population.size() / 2; i++)
-        population.at(i + (population.size()/2)) = population.at(i);
+    for (int i = 0; i < population.size() / 2; i++) {
+
+        int curCharIndex = i + (population.size()/2);
+
+        /* We need to keep the const stats, so save them before copying */
+        double prevStat1 = -1.0;
+        double prevStat2 = -1.0;
+        int constIndex1 = population.at(curCharIndex).constValIndices[0];
+        int constIndex2 = population.at(curCharIndex).constValIndices[1];
+        if (constIndex1 != -1) {
+            prevStat1 = population.at(curCharIndex).stats.at(constIndex1);
+        }
+        if (constIndex2 != -1) {
+            prevStat2 = population.at(curCharIndex).stats.at(constIndex2);
+        }
+
+        /* Replace the character */
+        population.at(curCharIndex) = population.at(i);
+
+        /* Restore the previous const stats */
+        if (prevStat1 != -1.0) {
+            population.at(curCharIndex).stats.at(constIndex1) = prevStat1;
+        }
+        if (prevStat2 != -1.0) {
+            population.at(curCharIndex).stats.at(constIndex2) = prevStat2;
+        }
+    }
 }
 
 /* n is the number of dimensions */
