@@ -251,6 +251,20 @@ void bacterialOptimization(int n)
                     CHEMO_STEPS, SWIM_LEN, ELIM_PROB, ATTRACT_D, ATTRACT_W, REPEL_H,
                     REPEL_W);
 
+				double currentFitness = 0;
+				for(character_t & character : population)
+				{
+					currentFitness += character.fitness;	
+				}	
+
+				if(currentFitness < bestFitness)
+				{
+					bestPopulation = population;
+					bestFitness = currentFitness;
+
+					printf("%f\n", bestFitness);		
+				}
+
             }// end CHEMO_STEPS
     
             // elimination step
@@ -271,23 +285,11 @@ void bacterialOptimization(int n)
             }
         }
 
-		double currentFitness = 0;
-		for(character_t & character : population)
-		{
-			currentFitness += character.fitness;	
-		}	
-
-		if(currentFitness < bestFitness)
-		{
-			bestPopulation = population;
-			bestFitness = currentFitness;
-		}
-
     } // end ELDISP steps
    
 	printResultsCSV(population);
 
-	printf("%d\n", bestFitness);		
+	printf("%f\n", bestFitness);		
 
 }//end of bacterialOptimization function
 
