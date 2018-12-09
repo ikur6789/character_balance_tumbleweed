@@ -35,7 +35,7 @@ class character_t
         character_t()
         {
             for(int s=0;s<NUM_STATS;++s)
-            	stats.push_back((double)(rand() % MAX_STAT_VAL)+20); //random stat from 20-100 for every stat
+            	stats.push_back(50.0); //random stat from 20-100 for every stat
 
             //Creating non changeable stats
             //first non-changable stat
